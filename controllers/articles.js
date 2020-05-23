@@ -1,4 +1,5 @@
 const Article = require('../modles/article');
+const slugify = require('slugify');
 
 exports.get_new_article_form = (req, res) => {
     res.render('articles/new', { article: new Article(), error: ''});
@@ -28,7 +29,7 @@ exports.get_one_article = (req, res) => {
             if(article === null) {
                 res.redirect('/');
             }
-            res.render('articles/show', {article});
+            res.render('articles/show', {article: article});
         })
         .catch();
 };
@@ -46,12 +47,13 @@ exports.update_article = (req, res, next) => {
     const updateArticle = {
         title: req.body.title,
         description: req.body.description,
-        markdown: req.body.markdown
+        markdown: req.body.markdown,
+        slug: slugify(req.body.title, {lower: true, strict: true})
     }
     Article.findByIdAndUpdate(req.params.id, {$set: updateArticle})
         .exec()
         .then(article => {
-            res.redirect(`/articles/${article.slug}`);
+            res.redirect(`/articles/${updateArticle.slug}`);
         })
         .catch(e => {
             res.render(`articles/edit`, { article: updateArticle, error: e});
